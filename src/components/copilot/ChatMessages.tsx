@@ -63,8 +63,8 @@ function ToolResultRenderer({
         <HotelCardList
           hotels={hotels as never}
           totalFound={totalFound}
-          onViewRooms={(bookingCode, hotelName) => {
-            onSendMessage?.(`Show me room options for ${hotelName}`);
+          onSelectRoom={(bookingCode, roomType, price) => {
+            onSendMessage?.(`Book the ${roomType} at $${price}`);
           }}
         />
       </div>

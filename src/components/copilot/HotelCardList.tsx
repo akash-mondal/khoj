@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { HotelCard } from "./HotelCard";
 
@@ -26,6 +27,7 @@ interface HotelCardListProps {
   totalFound: number;
   onViewRooms?: (bookingCode: string, hotelName: string) => void;
   onAddToTrip?: (hotel: HotelData) => void;
+  onSelectRoom?: (bookingCode: string, roomType: string, price: number) => void;
 }
 
 const stagger = {
@@ -33,7 +35,8 @@ const stagger = {
   show: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
-export function HotelCardList({ hotels, totalFound, onViewRooms, onAddToTrip }: HotelCardListProps) {
+export function HotelCardList({ hotels, totalFound, onSelectRoom }: HotelCardListProps) {
+  const [expandedCode, setExpandedCode] = useState<string | null>(null);
   const displayed = hotels.slice(0, 6);
   const remaining = hotels.length - displayed.length;
 
@@ -52,8 +55,13 @@ export function HotelCardList({ hotels, totalFound, onViewRooms, onAddToTrip }: 
           <HotelCard
             key={hotel.hotelCode}
             hotel={hotel}
-            onViewRooms={onViewRooms}
-            onAddToTrip={onAddToTrip}
+            isExpanded={expandedCode === hotel.hotelCode}
+            onToggle={() =>
+              setExpandedCode((prev) =>
+                prev === hotel.hotelCode ? null : hotel.hotelCode
+              )
+            }
+            onSelectRoom={onSelectRoom}
           />
         ))}
       </motion.div>
