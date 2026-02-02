@@ -31,9 +31,11 @@ export async function POST(req: NextRequest) {
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
         }
       } catch (err) {
+        const msg = err instanceof Error ? `${err.message} | ${err.constructor.name}` : "Unknown error";
+        console.error("[chat] Agent error:", msg, err);
         const errorEvent: AgentEvent = {
           type: "error",
-          content: err instanceof Error ? err.message : "Unknown error",
+          content: msg,
         };
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`));
       } finally {

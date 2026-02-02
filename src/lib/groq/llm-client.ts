@@ -5,7 +5,11 @@ import type {
 } from "groq-sdk/resources/chat/completions";
 import { GROQ_API_KEY, GROQ_MODEL } from "@/config/constants";
 
-const groq = new Groq({ apiKey: GROQ_API_KEY });
+const groq = new Groq({
+  apiKey: GROQ_API_KEY,
+  timeout: 30_000,
+  maxRetries: 2,
+});
 
 export interface ToolDefinition {
   type: "function";
