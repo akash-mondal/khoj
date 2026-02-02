@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/hooks/useAgent";
 import { HotelCardList } from "./HotelCardList";
@@ -174,7 +175,25 @@ export function ChatMessages({ messages, isLoading, activeTool, onSendMessage }:
                     : "bg-muted text-text-primary"
                 )}
               >
-                <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                <div className="break-words prose-chat">
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      em: ({ children }) => <em>{children}</em>,
+                      ul: ({ children }) => <ul className="list-disc list-inside mb-2 last:mb-0 space-y-0.5">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-inside mb-2 last:mb-0 space-y-0.5">{children}</ol>,
+                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                      code: ({ children }) => (
+                        <code className="bg-black/10 rounded px-1 py-0.5 text-[12px] font-mono">{children}</code>
+                      ),
+                      h3: ({ children }) => <h3 className="font-semibold text-sm mb-1">{children}</h3>,
+                      h4: ({ children }) => <h4 className="font-semibold text-[13px] mb-1">{children}</h4>,
+                    }}
+                  >
+                    {msg.content || ""}
+                  </ReactMarkdown>
+                </div>
                 {msg.isStreaming && (
                   <span className="inline-block w-1 h-4 bg-text-tertiary animate-pulse ml-0.5 -mb-0.5" />
                 )}
