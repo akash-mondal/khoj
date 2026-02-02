@@ -1,8 +1,48 @@
 import { chatCompletionStream, type ChatMessage, type StreamChunk } from "@/lib/groq/llm-client";
 import { agentTools } from "./tools";
-import { executeTool } from "./tool-executor";
+import { executeTool, type ToolResult } from "./tool-executor";
 import { buildSystemPrompt } from "./system-prompt";
 import { formatDateISO } from "@/lib/utils";
+
+/**
+ * Summarize bulky tool results before sending back to LLM.
+ * The full data is already sent to the frontend via SSE — the LLM
+ * only needs a summary so it can write a brief response without
+ * dumping raw data as markdown tables.
+ */
+function summarizeForLLM(toolName: string, result: ToolResult): string {
+  if (!result.success || !result.data) {
+    return JSON.stringify(result);
+  }
+
+  const data = result.data as Record<string, unknown>;
+
+  if (toolName === "search_hotels" && data.hotels) {
+    const hotels = data.hotels as Array<Record<string, unknown>>;
+    const top3 = hotels.slice(0, 3).map((h) => {
+      const price = h.price as Record<string, unknown> | undefined;
+      return `${h.name} (${h.stars}★, $${price?.offeredPrice || "N/A"})`;
+    });
+    return JSON.stringify({
+      success: true,
+      summary: `Found ${data.totalFound} hotels. Top results: ${top3.join(", ")}. The hotel cards are displayed visually to the agent — do NOT list them again. Write a brief 1-2 sentence summary mentioning the best match and why.`,
+    });
+  }
+
+  if (toolName === "get_room_options" && data.rooms) {
+    const rooms = data.rooms as Array<Record<string, unknown>>;
+    const summary = rooms.slice(0, 3).map((r) => {
+      const price = r.price as Record<string, unknown> | undefined;
+      return `${r.roomType} ($${price?.offeredPrice || "N/A"}, ${r.mealType}, ${r.isRefundable ? "refundable" : "non-refundable"})`;
+    });
+    return JSON.stringify({
+      success: true,
+      summary: `Found ${rooms.length} room options. Examples: ${summary.join("; ")}. The room cards are displayed visually to the agent — do NOT list them or create tables. Write a brief 1-2 sentence summary highlighting the best value option.`,
+    });
+  }
+
+  return JSON.stringify(result);
+}
 
 export interface AgentEvent {
   type: "text" | "tool_start" | "tool_result" | "done" | "error";
@@ -111,10 +151,10 @@ export async function* runAgent(options: AgentOptions): AsyncGenerator<AgentEven
 
       yield { type: "tool_result", toolName: tc.name, toolResult: result };
 
-      // Add tool result to messages
+      // Add summarized tool result to LLM messages (full data already sent to frontend)
       fullMessages.push({
         role: "tool",
-        content: JSON.stringify(result),
+        content: summarizeForLLM(tc.name, result),
         tool_call_id: tc.id,
         name: tc.name,
       });

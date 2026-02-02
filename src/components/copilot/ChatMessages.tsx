@@ -171,6 +171,11 @@ export function ChatMessages({ messages, isLoading, activeTool, onSendMessage }:
             );
           }
 
+          // Skip empty assistant messages (no content and not actively streaming)
+          if (msg.role === "assistant" && !msg.content && !msg.isStreaming) {
+            return null;
+          }
+
           return (
             <motion.div
               key={msg.id}
