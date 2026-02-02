@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { useAgent } from "@/hooks/useAgent";
 import { ChatMessages } from "./ChatMessages";
@@ -23,7 +23,9 @@ export function CopilotPanel() {
       : undefined,
   });
 
-  // Detect rich content (hotel/room results) to auto-expand the panel
+  // Detect rich content — once expanded, stay expanded (sticky latch)
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const hasRichContent = useMemo(() => {
     return messages.some(
       (m) =>
@@ -32,6 +34,12 @@ export function CopilotPanel() {
         (m.toolName === "search_hotels" || m.toolName === "get_room_options")
     );
   }, [messages]);
+
+  useEffect(() => {
+    if (hasRichContent && !isExpanded) {
+      setIsExpanded(true);
+    }
+  }, [hasRichContent, isExpanded]);
 
   // Auto-send queued messages from external components (e.g., alert clicks)
   useEffect(() => {
@@ -64,7 +72,7 @@ export function CopilotPanel() {
 
       {/* Backdrop when expanded */}
       <AnimatePresence>
-        {copilotOpen && hasRichContent && (
+        {copilotOpen && isExpanded && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -80,17 +88,15 @@ export function CopilotPanel() {
       <AnimatePresence>
         {copilotOpen && (
           <motion.div
-            layout
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.92 }}
             transition={{
-              layout: { type: "spring", stiffness: 300, damping: 30 },
               opacity: { duration: 0.2 },
               scale: { type: "spring", stiffness: 350, damping: 30 },
             }}
-            className={`fixed z-50 rounded-2xl border border-border bg-white shadow-2xl flex flex-col overflow-hidden ${
-              hasRichContent
+            className={`fixed z-50 rounded-2xl border border-border bg-white shadow-2xl flex flex-col overflow-hidden transition-[width,height,top,left,bottom,right,transform] duration-500 ease-out ${
+              isExpanded
                 ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[82vh] max-h-[780px]"
                 : "bottom-6 right-6 w-[400px] h-[560px]"
             }`}
@@ -102,9 +108,9 @@ export function CopilotPanel() {
                 <span className="display-serif text-base text-text-primary">Khoj</span>
               </div>
               <div className="flex items-center gap-1">
-                {hasRichContent && (
+                {isExpanded && (
                   <button
-                    onClick={() => setCopilotOpen(false)}
+                    onClick={() => setIsExpanded(false)}
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-muted transition-colors"
                     title="Minimize"
                   >
