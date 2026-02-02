@@ -6,7 +6,7 @@ import { useAgent } from "@/hooks/useAgent";
 import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
 import { SuggestedActions } from "./SuggestedActions";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function CopilotPanel() {
@@ -62,36 +62,67 @@ export function CopilotPanel() {
         )}
       </AnimatePresence>
 
-      {/* Floating chat panel when open */}
+      {/* Backdrop when expanded */}
+      <AnimatePresence>
+        {copilotOpen && hasRichContent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
+            onClick={() => setCopilotOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Chat panel */}
       <AnimatePresence>
         {copilotOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", stiffness: 350, damping: 30 }}
             layout
-            className={`fixed bottom-6 right-6 z-50 rounded-2xl border border-border bg-white shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
-              hasRichContent ? "w-[420px] h-[80vh] max-h-[720px]" : "w-[400px] h-[560px]"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{
+              layout: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.2 },
+              scale: { type: "spring", stiffness: 350, damping: 30 },
+            }}
+            className={`fixed z-50 rounded-2xl border border-border bg-white shadow-2xl flex flex-col overflow-hidden ${
+              hasRichContent
+                ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[82vh] max-h-[780px]"
+                : "bottom-6 right-6 w-[400px] h-[560px]"
             }`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-accent" strokeWidth={1.5} />
                 <span className="display-serif text-base text-text-primary">Khoj</span>
               </div>
-              <button
-                onClick={() => setCopilotOpen(false)}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-muted transition-colors"
-              >
-                <X className="w-4 h-4" strokeWidth={1.5} />
-              </button>
+              <div className="flex items-center gap-1">
+                {hasRichContent && (
+                  <button
+                    onClick={() => setCopilotOpen(false)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-muted transition-colors"
+                    title="Minimize"
+                  >
+                    <Minimize2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  </button>
+                )}
+                <button
+                  onClick={() => setCopilotOpen(false)}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-muted transition-colors"
+                >
+                  <X className="w-4 h-4" strokeWidth={1.5} />
+                </button>
+              </div>
             </div>
 
             {/* Context badge */}
             {(activeClient || activeTrip) && (
-              <div className="px-4 py-2 border-b border-divider">
+              <div className="px-4 py-2 border-b border-divider flex-shrink-0">
                 <p className="label-caps mb-1">Context</p>
                 <p className="text-xs text-text-secondary">
                   {activeClient?.name}
