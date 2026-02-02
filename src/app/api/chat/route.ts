@@ -6,6 +6,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
+  console.log("[chat] GROQ_API_KEY present:", !!process.env.GROQ_API_KEY, "length:", process.env.GROQ_API_KEY?.length || 0);
   const body = await req.json();
   const messages: ChatMessage[] = body.messages || [];
   const clientName: string | undefined = body.clientName;
