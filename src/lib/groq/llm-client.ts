@@ -87,7 +87,19 @@ export async function* chatCompletionStream(
     ...(tools?.length ? { tools: tools as any } : {}),
   };
 
-  const stream = await groq.chat.completions.create(params);
+  // Retry once on tool call validation errors (LLM sometimes passes null for optional params)
+  let stream;
+  try {
+    stream = await groq.chat.completions.create(params);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "";
+    if (msg.includes("Tool call validation failed")) {
+      // Retry with slightly higher temperature for different output
+      stream = await groq.chat.completions.create({ ...params, temperature: 0.3 });
+    } else {
+      throw err;
+    }
+  }
 
   const toolCalls = new Map<number, { id: string; name: string; arguments: string }>();
 

@@ -23,23 +23,23 @@ export const agentTools: ToolDefinition[] = [
             description: "Check-out date in YYYY-MM-DD format",
           },
           num_rooms: {
-            type: "number",
+            type: ["number", "null"],
             description: "Number of rooms needed. Defaults to 1.",
           },
           adults_per_room: {
-            type: "number",
+            type: ["number", "null"],
             description: "Number of adults per room. Defaults to 2.",
           },
           min_star_rating: {
-            type: "number",
+            type: ["number", "null"],
             description: "Minimum star rating filter (1-5). Optional.",
           },
           max_budget_per_night: {
-            type: "number",
+            type: ["number", "null"],
             description: "Maximum budget per night in USD. Optional.",
           },
           guest_nationality: {
-            type: "string",
+            type: ["string", "null"],
             description: "Two-letter country code for guest nationality. Defaults to 'IN'.",
           },
         },
@@ -145,7 +145,7 @@ export const agentTools: ToolDefinition[] = [
             description: "Guest last name.",
           },
           client_reference: {
-            type: "string",
+            type: ["string", "null"],
             description: "Agent's internal reference ID for this booking.",
           },
         },
@@ -234,15 +234,15 @@ export const agentTools: ToolDefinition[] = [
             description: "Date for this item in YYYY-MM-DD format.",
           },
           end_date: {
-            type: "string",
+            type: ["string", "null"],
             description: "End date if applicable (e.g. hotel checkout).",
           },
           price: {
-            type: "number",
+            type: ["number", "null"],
             description: "Price in USD.",
           },
           details: {
-            type: "string",
+            type: ["string", "null"],
             description: "Additional details about the product.",
           },
           status: {
@@ -269,7 +269,7 @@ export const agentTools: ToolDefinition[] = [
             description: "The trip ID to generate a quote for.",
           },
           markup_percentage: {
-            type: "number",
+            type: ["number", "null"],
             description: "Agent markup percentage. Defaults to 15.",
           },
         },
@@ -291,15 +291,15 @@ export const agentTools: ToolDefinition[] = [
             description: "City or destination name.",
           },
           dates: {
-            type: "string",
+            type: ["string", "null"],
             description: "Travel date range, e.g. 'March 15-20, 2026'.",
           },
           client_preferences: {
-            type: "string",
+            type: ["string", "null"],
             description: "Client preference notes to match activities to.",
           },
           budget: {
-            type: "number",
+            type: ["number", "null"],
             description: "Budget for activities in USD.",
           },
         },

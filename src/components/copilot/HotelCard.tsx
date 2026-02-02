@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Hotel, ChevronDown, ChevronUp, Shield, ShieldOff, Coffee, Loader2 } from "lucide-react";
+import { Star, Hotel, ChevronUp, Shield, ShieldOff, Coffee, Loader2, Check, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface HotelData {
@@ -39,14 +39,51 @@ interface HotelCardProps {
   hotel: HotelData;
   isExpanded: boolean;
   onToggle: () => void;
-  onSelectRoom?: (bookingCode: string, roomType: string, price: number) => void;
 }
 
-export function HotelCard({ hotel, isExpanded, onToggle, onSelectRoom }: HotelCardProps) {
+export function HotelCard({ hotel, isExpanded, onToggle }: HotelCardProps) {
   const [imgError, setImgError] = useState(false);
   const [rooms, setRooms] = useState<RoomData[] | null>(null);
   const [roomsLoading, setRoomsLoading] = useState(false);
   const [roomsError, setRoomsError] = useState<string | null>(null);
+  const [prebookState, setPrebookState] = useState<{
+    code: string;
+    status: "loading" | "success" | "error";
+    message?: string;
+  } | null>(null);
+
+  const handlePrebook = async (room: RoomData) => {
+    if (prebookState?.status === "loading") return;
+    setPrebookState({ code: room.bookingCode, status: "loading" });
+    try {
+      const res = await fetch("/api/tbo/prebook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingCode: room.bookingCode }),
+      });
+      if (!res.ok) throw new Error("Prebook failed");
+      const data = await res.json();
+      if (data.Status?.Code === 200) {
+        setPrebookState({
+          code: room.bookingCode,
+          status: "success",
+          message: `${formatCurrency(room.price.offeredPrice, "USD")} locked`,
+        });
+      } else {
+        setPrebookState({
+          code: room.bookingCode,
+          status: "error",
+          message: data.Status?.Description || "Prebook failed",
+        });
+      }
+    } catch {
+      setPrebookState({
+        code: room.bookingCode,
+        status: "error",
+        message: "Could not secure room — try again",
+      });
+    }
+  };
 
   const handleClick = async () => {
     if (isExpanded) {
@@ -208,48 +245,78 @@ export function HotelCard({ hotel, isExpanded, onToggle, onSelectRoom }: HotelCa
                   <p className="text-[10px] text-text-tertiary font-medium uppercase tracking-wider">
                     {rooms.length} rooms available
                   </p>
-                  {rooms.slice(0, 4).map((room, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between gap-2 p-2 rounded-md border border-border hover:border-accent/30 transition-colors cursor-pointer group/room"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectRoom?.(room.bookingCode, room.roomType, room.price.offeredPrice);
-                      }}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-medium text-text-primary truncate">
-                          {room.roomType}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          {room.mealType && room.mealType !== "NoMeal" && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-confirmed">
-                              <Coffee className="w-2 h-2" strokeWidth={1.5} />
-                              {room.mealType}
+                  {rooms.slice(0, 4).map((room, i) => {
+                    const isThisPrebook = prebookState?.code === room.bookingCode;
+                    const isPrebooking = isThisPrebook && prebookState?.status === "loading";
+                    const isPrebooked = isThisPrebook && prebookState?.status === "success";
+                    const isPrebookError = isThisPrebook && prebookState?.status === "error";
+
+                    return (
+                      <div
+                        key={i}
+                        className={`flex items-center justify-between gap-2 p-2 rounded-md border transition-colors ${
+                          isPrebooked
+                            ? "border-confirmed/40 bg-confirmed/5"
+                            : isPrebookError
+                            ? "border-alert/30 bg-alert/5"
+                            : "border-border hover:border-accent/30 cursor-pointer group/room"
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isPrebooking && !isPrebooked) handlePrebook(room);
+                        }}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-medium text-text-primary truncate">
+                            {room.roomType}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {room.mealType && room.mealType !== "NoMeal" && (
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-confirmed">
+                                <Coffee className="w-2 h-2" strokeWidth={1.5} />
+                                {room.mealType}
+                              </span>
+                            )}
+                            <span className={`inline-flex items-center gap-0.5 text-[9px] font-medium ${
+                              room.isRefundable ? "text-confirmed" : "text-alert"
+                            }`}>
+                              {room.isRefundable ? (
+                                <Shield className="w-2 h-2" strokeWidth={1.5} />
+                              ) : (
+                                <ShieldOff className="w-2 h-2" strokeWidth={1.5} />
+                              )}
+                              {room.isRefundable ? "Refundable" : "Non-refundable"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="font-data text-[13px] font-semibold text-text-primary">
+                            {formatCurrency(room.price.offeredPrice, "USD")}
+                          </span>
+                          {isPrebooking && (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-accent" strokeWidth={1.5} />
+                          )}
+                          {isPrebooked && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-confirmed">
+                              <Check className="w-3 h-3" strokeWidth={2} />
+                              Locked
                             </span>
                           )}
-                          <span className={`inline-flex items-center gap-0.5 text-[9px] font-medium ${
-                            room.isRefundable ? "text-confirmed" : "text-alert"
-                          }`}>
-                            {room.isRefundable ? (
-                              <Shield className="w-2 h-2" strokeWidth={1.5} />
-                            ) : (
-                              <ShieldOff className="w-2 h-2" strokeWidth={1.5} />
-                            )}
-                            {room.isRefundable ? "Refundable" : "Non-refundable"}
-                          </span>
+                          {isPrebookError && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-alert">
+                              <AlertCircle className="w-3 h-3" strokeWidth={1.5} />
+                              Failed
+                            </span>
+                          )}
+                          {!isThisPrebook && (
+                            <span className="text-[10px] font-medium text-accent opacity-0 group-hover/room:opacity-100 transition-opacity">
+                              Book →
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="font-data text-[13px] font-semibold text-text-primary">
-                          {formatCurrency(room.price.offeredPrice, "USD")}
-                        </span>
-                        <span className="text-[10px] font-medium text-accent opacity-0 group-hover/room:opacity-100 transition-opacity">
-                          Book →
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {rooms.length > 4 && (
                     <p className="text-[10px] text-text-tertiary text-center pt-1">
                       +{rooms.length - 4} more rooms

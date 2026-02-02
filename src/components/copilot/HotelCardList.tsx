@@ -25,9 +25,6 @@ interface HotelData {
 interface HotelCardListProps {
   hotels: HotelData[];
   totalFound: number;
-  onViewRooms?: (bookingCode: string, hotelName: string) => void;
-  onAddToTrip?: (hotel: HotelData) => void;
-  onSelectRoom?: (bookingCode: string, roomType: string, price: number) => void;
 }
 
 const stagger = {
@@ -35,7 +32,7 @@ const stagger = {
   show: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
-export function HotelCardList({ hotels, totalFound, onSelectRoom }: HotelCardListProps) {
+export function HotelCardList({ hotels, totalFound }: HotelCardListProps) {
   const [expandedCode, setExpandedCode] = useState<string | null>(null);
   const displayed = hotels.slice(0, 6);
   const remaining = hotels.length - displayed.length;
@@ -61,7 +58,6 @@ export function HotelCardList({ hotels, totalFound, onSelectRoom }: HotelCardLis
                 prev === hotel.hotelCode ? null : hotel.hotelCode
               )
             }
-            onSelectRoom={onSelectRoom}
           />
         ))}
       </motion.div>

@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { formatCurrency } from "@/lib/utils";
-import { Shield, ShieldOff, Coffee } from "lucide-react";
+import { Shield, ShieldOff, Coffee, Loader2, Check, AlertCircle } from "lucide-react";
 
 interface RoomData {
   roomType: string;
@@ -23,10 +24,36 @@ interface RoomData {
 
 interface RoomOptionCardProps {
   room: RoomData;
-  onSelect?: (bookingCode: string, roomType: string, price: number) => void;
 }
 
-export function RoomOptionCard({ room, onSelect }: RoomOptionCardProps) {
+export function RoomOptionCard({ room }: RoomOptionCardProps) {
+  const [prebookStatus, setPrebookStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [prebookMsg, setPrebookMsg] = useState("");
+
+  const handlePrebook = async () => {
+    if (prebookStatus === "loading" || prebookStatus === "success") return;
+    setPrebookStatus("loading");
+    try {
+      const res = await fetch("/api/tbo/prebook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingCode: room.bookingCode }),
+      });
+      if (!res.ok) throw new Error("Prebook failed");
+      const data = await res.json();
+      if (data.Status?.Code === 200) {
+        setPrebookStatus("success");
+        setPrebookMsg(`${formatCurrency(room.price.offeredPrice, room.price.currency)} locked`);
+      } else {
+        setPrebookStatus("error");
+        setPrebookMsg(data.Status?.Description || "Prebook failed");
+      }
+    } catch {
+      setPrebookStatus("error");
+      setPrebookMsg("Could not secure room");
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -83,10 +110,25 @@ export function RoomOptionCard({ room, onSelect }: RoomOptionCardProps) {
       )}
 
       <button
-        onClick={() => onSelect?.(room.bookingCode, room.roomType, room.price.offeredPrice)}
-        className="w-full mt-2.5 text-xs font-medium text-white bg-accent rounded-lg py-1.5 hover:bg-accent/90 transition-colors"
+        onClick={handlePrebook}
+        disabled={prebookStatus === "loading" || prebookStatus === "success"}
+        className={`w-full mt-2.5 text-xs font-medium rounded-lg py-1.5 transition-colors flex items-center justify-center gap-1.5 ${
+          prebookStatus === "success"
+            ? "bg-confirmed text-white"
+            : prebookStatus === "error"
+            ? "bg-alert/10 text-alert border border-alert/20"
+            : prebookStatus === "loading"
+            ? "bg-accent/70 text-white"
+            : "text-white bg-accent hover:bg-accent/90"
+        }`}
       >
-        Select Room
+        {prebookStatus === "loading" && <Loader2 className="w-3 h-3 animate-spin" strokeWidth={1.5} />}
+        {prebookStatus === "success" && <Check className="w-3 h-3" strokeWidth={2} />}
+        {prebookStatus === "error" && <AlertCircle className="w-3 h-3" strokeWidth={1.5} />}
+        {prebookStatus === "idle" && "Select Room"}
+        {prebookStatus === "loading" && "Securing room..."}
+        {prebookStatus === "success" && prebookMsg}
+        {prebookStatus === "error" && prebookMsg}
       </button>
     </motion.div>
   );

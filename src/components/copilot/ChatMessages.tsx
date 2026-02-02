@@ -41,10 +41,8 @@ function ToolIndicator({ message }: { message: ChatMessage }) {
 
 function ToolResultRenderer({
   message,
-  onSendMessage,
 }: {
   message: ChatMessage;
-  onSendMessage?: (text: string) => void;
 }) {
   const result = message.toolResult as { success?: boolean; data?: Record<string, unknown> } | undefined;
 
@@ -63,9 +61,6 @@ function ToolResultRenderer({
         <HotelCardList
           hotels={hotels as never}
           totalFound={totalFound}
-          onSelectRoom={(bookingCode, roomType, price) => {
-            onSendMessage?.(`Book the ${roomType} at $${price}`);
-          }}
         />
       </div>
     );
@@ -86,9 +81,6 @@ function ToolResultRenderer({
             <RoomOptionCard
               key={i}
               room={room as never}
-              onSelect={(bookingCode, roomType, price) => {
-                onSendMessage?.(`Book the ${roomType} room at $${price}`);
-              }}
             />
           ))}
           {rooms.length > 4 && (
@@ -129,10 +121,9 @@ interface ChatMessagesProps {
   messages: ChatMessage[];
   isLoading: boolean;
   activeTool: string | null;
-  onSendMessage?: (text: string) => void;
 }
 
-export function ChatMessages({ messages, isLoading, activeTool, onSendMessage }: ChatMessagesProps) {
+export function ChatMessages({ messages, isLoading, activeTool }: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
   const lastMsgCountRef = useRef(0);
@@ -166,7 +157,6 @@ export function ChatMessages({ messages, isLoading, activeTool, onSendMessage }:
               <ToolResultRenderer
                 key={msg.id}
                 message={msg}
-                onSendMessage={onSendMessage}
               />
             );
           }

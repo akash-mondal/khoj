@@ -62,6 +62,27 @@ interface AgentOptions {
 }
 
 /**
+ * Generate a brief description when the LLM jumps straight to tool calls
+ * without producing any text. Ensures the user always sees context.
+ */
+function autoDescribeTools(toolNames: string[]): string {
+  const parts: string[] = [];
+  if (toolNames.includes("get_client_preferences")) parts.push("pulling up client preferences");
+  if (toolNames.includes("search_hotels")) parts.push("searching for available hotels");
+  if (toolNames.includes("get_room_options")) parts.push("checking room availability");
+  if (toolNames.includes("get_hotel_details")) parts.push("loading hotel details");
+  if (toolNames.includes("prebook_room")) parts.push("securing the room rate");
+  if (toolNames.includes("book_hotel")) parts.push("completing the booking");
+  if (toolNames.includes("check_cancellation_policy")) parts.push("checking cancellation terms");
+  if (toolNames.includes("suggest_activities")) parts.push("finding activities");
+  if (parts.length === 0) return "Let me look into that.\n\n";
+  const joined = parts.length > 1
+    ? parts.slice(0, -1).join(", ") + " and " + parts[parts.length - 1]
+    : parts[0];
+  return `On it — ${joined}.\n\n`;
+}
+
+/**
  * Core agentic loop. Streams text + executes tool calls in a loop.
  * Yields AgentEvents as they happen.
  */
@@ -120,10 +141,17 @@ export async function* runAgent(options: AgentOptions): AsyncGenerator<AgentEven
       .map((c) => c.toolCall!);
 
     // Build assistant message with tool calls
-    const assistantContent = chunks
+    let assistantContent = chunks
       .filter((c) => c.type === "text" && c.content)
       .map((c) => c.content)
       .join("");
+
+    // If LLM jumped straight to tools without text, inject auto-description
+    if (!assistantContent.trim() && toolCalls.length > 0) {
+      const autoText = autoDescribeTools(toolCalls.map((tc) => tc.name));
+      yield { type: "text", content: autoText };
+      assistantContent = autoText;
+    }
 
     const assistantMsg: ChatMessage = {
       role: "assistant",
@@ -141,6 +169,10 @@ export async function* runAgent(options: AgentOptions): AsyncGenerator<AgentEven
       let args: Record<string, unknown>;
       try {
         args = JSON.parse(tc.arguments);
+        // Strip null values — LLM sometimes passes null for optional params
+        for (const key of Object.keys(args)) {
+          if (args[key] === null || args[key] === undefined) delete args[key];
+        }
       } catch {
         args = {};
       }

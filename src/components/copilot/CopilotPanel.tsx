@@ -147,7 +147,6 @@ export function CopilotPanel() {
               messages={messages}
               isLoading={isLoading}
               activeTool={activeTool}
-              onSendMessage={sendMessage}
             />
 
             {/* Input */}
