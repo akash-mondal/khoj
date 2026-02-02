@@ -276,7 +276,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [trips, setTrips] = useState<Trip[]>(initialTrips);
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
-  const [copilotOpen, setCopilotOpen] = useState(true);
+  const [copilotOpen, setCopilotOpen] = useState(false);
   const [queuedMessage, setQueuedMessage] = useState<string | null>(null);
 
   const addItineraryItem = useCallback((item: ItineraryItem) => {

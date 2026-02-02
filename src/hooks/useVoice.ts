@@ -4,21 +4,49 @@ import { useState, useCallback, useRef } from "react";
 
 interface UseVoiceOptions {
   onTranscript?: (text: string) => void;
+  silenceThreshold?: number;
+  silenceTimeout?: number;
 }
 
-export function useVoice({ onTranscript }: UseVoiceOptions = {}) {
+export function useVoice({
+  onTranscript,
+  silenceThreshold = 10,
+  silenceTimeout = 1500,
+}: UseVoiceOptions = {}) {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animFrameRef = useRef<number>(0);
+  const silenceStartRef = useRef<number>(0);
+  const hasSpokenRef = useRef(false);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
+    }
+    cancelAnimationFrame(animFrameRef.current);
+    if (audioContextRef.current?.state !== "closed") {
+      audioContextRef.current?.close();
+    }
+    audioContextRef.current = null;
+    analyserRef.current = null;
+    setIsRecording(false);
+    setAudioLevel(0);
+  }, []);
 
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
       chunksRef.current = [];
+      silenceStartRef.current = 0;
+      hasSpokenRef.current = false;
 
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -30,20 +58,59 @@ export function useVoice({ onTranscript }: UseVoiceOptions = {}) {
         await transcribe(blob);
       };
 
+      // Set up Web Audio API for level monitoring + VAD
+      const audioCtx = new AudioContext();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+      source.connect(analyser);
+
+      audioContextRef.current = audioCtx;
+      analyserRef.current = analyser;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      const monitorLevel = () => {
+        if (!analyserRef.current) return;
+        analyserRef.current.getByteFrequencyData(dataArray);
+
+        // Compute average energy (0-255 range)
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const avg = sum / dataArray.length;
+
+        // Normalize to 0-1
+        const normalized = Math.min(avg / 80, 1);
+        setAudioLevel(normalized);
+
+        // VAD: detect silence
+        if (avg > silenceThreshold) {
+          hasSpokenRef.current = true;
+          silenceStartRef.current = 0;
+        } else if (hasSpokenRef.current) {
+          if (silenceStartRef.current === 0) {
+            silenceStartRef.current = Date.now();
+          } else if (Date.now() - silenceStartRef.current > silenceTimeout) {
+            // Silence detected after speech — auto-stop
+            stopRecording();
+            return;
+          }
+        }
+
+        animFrameRef.current = requestAnimationFrame(monitorLevel);
+      };
+
       recorder.start();
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
+      monitorLevel();
     } catch (err) {
       console.error("Microphone access denied:", err);
     }
-  }, []);
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current?.state === "recording") {
-      mediaRecorderRef.current.stop();
-    }
-    setIsRecording(false);
-  }, []);
+  }, [silenceThreshold, silenceTimeout, stopRecording]);
 
   const transcribe = async (blob: Blob) => {
     setIsTranscribing(true);
@@ -109,6 +176,7 @@ export function useVoice({ onTranscript }: UseVoiceOptions = {}) {
     isRecording,
     isTranscribing,
     isSpeaking,
+    audioLevel,
     startRecording,
     stopRecording,
     speak,

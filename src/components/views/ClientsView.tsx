@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useApp, type ClientProfile } from "@/context/AppContext";
 import { motion } from "framer-motion";
 import { cn, formatCurrency } from "@/lib/utils";
-import { ChevronRight, Star, Droplets, Utensils, CreditCard, MapPin } from "lucide-react";
+import { ChevronRight, Star, Droplets, Utensils, CreditCard, MapPin, Search, FileText, Sparkles } from "lucide-react";
 
 const clients: ClientProfile[] = [
   {
@@ -133,6 +133,13 @@ function ClientDetail({
   client: ClientProfile;
   onBack: () => void;
 }) {
+  const { setCopilotOpen, setQueuedMessage } = useApp();
+
+  const handleAction = (message: string) => {
+    setCopilotOpen(true);
+    setQueuedMessage(message);
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-8 py-8">
       <button
@@ -244,6 +251,52 @@ function ClientDetail({
           </div>
         </motion.div>
       </div>
+
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="mt-8"
+      >
+        <p className="label-caps mb-3">Quick Actions</p>
+        <div className="flex flex-wrap gap-2">
+          {client.recentDestinations.map((dest) => (
+            <button
+              key={dest}
+              onClick={() =>
+                handleAction(
+                  `Find ${client.preferences.hotelStars}-star hotels in ${dest} for ${client.name}`
+                )
+              }
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary border border-border rounded-full px-3 py-1.5 hover:border-accent hover:text-accent transition-colors"
+            >
+              <Search className="w-3 h-3" strokeWidth={1.5} />
+              Hotels in {dest}
+            </button>
+          ))}
+          <button
+            onClick={() =>
+              handleAction(`Generate a travel quote for ${client.name}`)
+            }
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary border border-border rounded-full px-3 py-1.5 hover:border-accent hover:text-accent transition-colors"
+          >
+            <FileText className="w-3 h-3" strokeWidth={1.5} />
+            Create quote
+          </button>
+          <button
+            onClick={() =>
+              handleAction(
+                `Suggest activities and a complete itinerary for ${client.name} based on their preferences`
+              )
+            }
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary border border-border rounded-full px-3 py-1.5 hover:border-accent hover:text-accent transition-colors"
+          >
+            <Sparkles className="w-3 h-3" strokeWidth={1.5} />
+            Suggest itinerary
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 }

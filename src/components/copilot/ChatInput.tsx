@@ -12,11 +12,31 @@ interface ChatInputProps {
   onStop?: () => void;
 }
 
+function AudioLevelBars({ level }: { level: number }) {
+  const barCount = 4;
+  const heights = [0.4, 0.7, 1.0, 0.6];
+  return (
+    <div className="flex items-center gap-[2px] h-4">
+      {heights.map((baseHeight, i) => {
+        const h = Math.max(4, baseHeight * level * 16);
+        return (
+          <motion.div
+            key={i}
+            className="w-[3px] rounded-full bg-white"
+            animate={{ height: h }}
+            transition={{ duration: 0.1, ease: "easeOut" }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export function ChatInput({ onSend, isLoading, onStop }: ChatInputProps) {
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { isRecording, isTranscribing, startRecording, stopRecording } = useVoice({
+  const { isRecording, isTranscribing, audioLevel, startRecording, stopRecording } = useVoice({
     onTranscript: (transcript) => {
       setText(transcript);
       // Auto-send after transcription
@@ -66,12 +86,7 @@ export function ChatInput({ onSend, isLoading, onStop }: ChatInputProps) {
           )}
         >
           {isRecording ? (
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.2, repeat: Infinity }}
-            >
-              <Square className="w-3.5 h-3.5" fill="currentColor" />
-            </motion.div>
+            <AudioLevelBars level={audioLevel} />
           ) : (
             <Mic className="w-4 h-4" strokeWidth={1.5} />
           )}
@@ -84,7 +99,13 @@ export function ChatInput({ onSend, isLoading, onStop }: ChatInputProps) {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
-          placeholder={isRecording ? "Listening..." : "Message Khoj..."}
+          placeholder={
+            isRecording
+              ? "Listening..."
+              : isTranscribing
+                ? "Transcribing..."
+                : "Message Khoj..."
+          }
           rows={1}
           className="flex-1 resize-none border-0 bg-transparent text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none min-h-[32px] py-1"
         />

@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { MapView } from "@/components/trip/MapView";
+import { DESTINATION_COORDS } from "@/config/constants";
 
 const typeIcons = {
   flight: Plane,
@@ -285,6 +286,7 @@ export function TripWorkspace() {
               type: item.type,
               price: item.price ? formatCurrency(item.price) : undefined,
             }))}
+          center={DESTINATION_COORDS[trip.destination]}
         />
       </div>
     </div>

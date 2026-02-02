@@ -141,35 +141,35 @@ Overall style: premium dark luxury matching slide 1, maximum information density
 
 ### [0:15 - 0:40] FLOW 1: Alert → Copilot Action
 
-**On screen:** Dashboard is open. Alerts section visible. Click "Price dropped on Marriott Dubai" alert.
+**On screen:** Dashboard is open. Alerts section visible. Click "Price dropped on Marriott Dubai" alert. The floating copilot widget pops up in the bottom-right with the alert context pre-filled. AI immediately starts searching for current rates.
 
 **Hitakshi says:**
 
-> "So here's the agent's dashboard — you can see live alerts coming in. This one says Marriott Dubai dropped twenty-three dollars a night. I just click it... and the copilot picks it up automatically. It already knows this is Kumar's trip, and it's asking if it should check rates and rebook. The agent didn't have to type anything."
+> "So here's the agent's dashboard — live alerts coming in. This one says Marriott Dubai dropped twenty-three dollars a night. I click it... and the copilot pops up in the corner, already knows this is Kumar's trip, and immediately starts pulling current rates. No questions asked — it just goes and does the search."
 
-*Screen Studio: zoom into the alert click, then zoom into copilot panel as the message appears and AI responds.*
+*Screen Studio: zoom into the alert click, then zoom into the floating copilot widget as it opens and the AI starts executing tool calls.*
 
 ---
 
 ### [0:40 - 1:05] FLOW 2: Client-Aware Hotel Search
 
-**On screen:** Navigate to Clients tab. Click Priya Mehra. Copilot shows suggested actions. Click "Find hotels in Bali".
+**On screen:** Navigate to Clients tab. Click Priya Mehra. See her preferences and booking patterns. Below the profile, click the "Hotels in Bali" quick action button. Floating copilot opens and immediately searches.
 
 **Hitakshi says:**
 
-> "Now say I'm working on Mehra's file. I click her profile, and Khoj already knows — four-star preference, no pool needed, she likes Novotel and Holiday Inn. I hit this suggested action for Bali hotels and... these are real results from TBO's API. Prices, star ratings, images — all live."
+> "Now I'm on Mehra's profile — four-star preference, Holiday Inn and Novotel are her go-to brands. See these quick action buttons at the bottom? I click 'Hotels in Bali' and the copilot fires up, already has her preferences loaded, and runs the TBO search. Real prices, star ratings, images — all live."
 
-*Screen Studio: zoom into client preferences briefly, then the hotel cards loading in copilot.*
+*Screen Studio: zoom into client preferences briefly, then the quick action buttons, then the floating copilot with hotel cards loading.*
 
 ---
 
 ### [1:05 - 1:30] FLOW 3: Room Selection
 
-**On screen:** From hotel cards, click "View Rooms" on one. Room cards appear. Click "Select Room".
+**On screen:** From hotel cards in the copilot, click "View Rooms" on one. Room cards appear with meal plans, prices, refundable badges. Click "Select Room".
 
 **Hitakshi says:**
 
-> "If a hotel looks good, I just click View Rooms — and now you see room types, meal plans, whether it's refundable, actual pricing with taxes. I pick one, hit Select Room, and it kicks off the booking flow. Discovery to booking, all in one conversation."
+> "If a hotel looks good, I click View Rooms — room types, meal plans, whether it's refundable, actual pricing with taxes. I pick one, hit Select Room, and the booking flow kicks off. Discovery to booking, all in one conversation inside this copilot widget."
 
 *Screen Studio: zoom into room card details — meal type, price, refundable badge.*
 
@@ -177,25 +177,25 @@ Overall style: premium dark luxury matching slide 1, maximum information density
 
 ### [1:30 - 1:55] FLOW 4: Voice Agent
 
-**On screen:** Click microphone button. Speak into mic. Voice transcribed. Hotel cards appear.
+**On screen:** Click the microphone button in the copilot. Audio level bars animate showing input being received. Speak into mic — bars pulse with voice. After finishing speaking, mic auto-stops (VAD detects silence). "Transcribing..." appears, then the text shows up and search begins.
 
 **Hitakshi says:**
 
-> "And here's the part I really like — the agent can just talk to it. Click the mic, say 'find five-star hotels in Dubai for Kumar', and Khoj transcribes it, pulls Kumar's preferences, runs the search, and gives you results. Hands-free. Really useful when you're on the phone with a client."
+> "The agent can just talk to it. Click the mic — see those bars moving? That's real-time audio feedback. I say 'find five-star hotels in Dubai for Kumar' and when I stop speaking, it auto-detects the silence and transcribes. Pulls Kumar's preferences, runs the search, hotel cards appear. Completely hands-free."
 
-*Screen Studio: zoom into mic button, then the voice waveform/transcription, then results.*
+*Screen Studio: zoom into mic button, then the audio level bars animating, then the auto-stop and transcription, then results loading.*
 
 ---
 
 ### [1:55 - 2:25] FLOW 5: Trip Command Center
 
-**On screen:** Go back to Dashboard. Click Kumar's Dubai trip card. Full trip workspace opens — itinerary, map, budget.
+**On screen:** Go to Trips tab. Click Kumar's Dubai trip — map shows Dubai with markers. Then go back and click Priya's Bali trip — map correctly shows Bali. Show itinerary timeline, cost breakdown, budget bar.
 
 **Hitakshi says:**
 
-> "Last thing — every trip has a command center. I click Kumar's Dubai trip and you get everything in one screen. The itinerary timeline, a real map showing all the locations, budget breakdown with how much is spent versus allocated. The agent doesn't have to jump between tabs or tools — it's all right here."
+> "Every trip has a command center. Kumar's Dubai trip — itinerary, live map centered on Dubai, budget bar showing thirty-two hundred of five thousand spent. And if I go to Priya's Bali trip — the map moves to Bali. Each destination gets its own map view. The agent sees everything in one screen without jumping between tabs."
 
-*Screen Studio: zoom into budget bar, then pan across itinerary items, then the Mapbox map.*
+*Screen Studio: zoom into budget bar, then pan across itinerary, then show the Mapbox map. Quick switch to Priya's trip to show the map updating to Bali.*
 
 ---
 
@@ -203,9 +203,9 @@ Overall style: premium dark luxury matching slide 1, maximum information density
 
 **Hitakshi says:**
 
-> "So that's all five flows — you can see them recapped on the slide with what each one actually did. Alert to action, smart search, room booking, voice agent, trip center. The architecture's right there too — Groq powering the LLM and voice, thirteen agent tools in the middle, TBO's live API on the other end. Three hundred thousand hotels, nineteen cities, thirty-seven tests passing, and zero mocked API calls. That's Khoj."
+> "So that's five flows — alerts, search, booking, voice, trip management. The architecture's on the slide — Groq for the LLM and voice, thirteen agent tools, TBO's live API. Three hundred thousand hotels, nineteen cities, thirty-seven tests, zero mocked calls. That's Khoj."
 
-*Tone: let the slide do the heavy lifting. Hitakshi just reads the highlights — the numbers speak for themselves. Don't rush, let it land. End clean, no "thanks for watching."*
+*Tone: let the slide do the heavy lifting. Short and clean. End it — no "thanks for watching."*
 
 ---
 
@@ -216,11 +216,11 @@ Overall style: premium dark luxury matching slide 1, maximum information density
 2. **Pause for the visuals.** When hotel cards load or the map renders, let it breathe for 1-2 seconds. Don't talk over loading states.
 
 3. **Screen Studio cursor zoom** is your best friend. Use it on:
-   - The alert click (Flow 1)
-   - The hotel card prices (Flow 2)
-   - The room refundable badge (Flow 3)
-   - The mic button (Flow 4)
-   - The budget bar (Flow 5)
+   - The alert click → floating copilot opening (Flow 1)
+   - The quick action buttons on client profile (Flow 2)
+   - The room refundable badge and prices (Flow 3)
+   - The audio level bars animating during voice input (Flow 4)
+   - The map switching from Dubai to Bali (Flow 5)
 
 4. **If something loads slow or breaks,** just say "let me try that again" and cut it in post. That's what Screen Studio is for.
 
