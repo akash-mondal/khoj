@@ -30,33 +30,38 @@ interface HotelCardListProps {
 
 const stagger = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
 export function HotelCardList({ hotels, totalFound, onViewRooms, onAddToTrip }: HotelCardListProps) {
+  const displayed = hotels.slice(0, 6);
+  const remaining = hotels.length - displayed.length;
+
   return (
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      animate="show"
-      className="space-y-2.5 px-1"
-    >
-      <p className="text-[11px] text-text-tertiary px-2">
-        {totalFound} hotels found &middot; showing top {hotels.length}
+    <div className="px-1">
+      <p className="text-[11px] text-text-tertiary px-1 mb-2">
+        {totalFound} hotels found &middot; showing top {displayed.length}
       </p>
-      {hotels.slice(0, 5).map((hotel) => (
-        <HotelCard
-          key={hotel.hotelCode}
-          hotel={hotel}
-          onViewRooms={onViewRooms}
-          onAddToTrip={onAddToTrip}
-        />
-      ))}
-      {hotels.length > 5 && (
-        <p className="text-xs text-text-tertiary text-center py-1">
-          +{hotels.length - 5} more results
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-2 gap-2"
+      >
+        {displayed.map((hotel) => (
+          <HotelCard
+            key={hotel.hotelCode}
+            hotel={hotel}
+            onViewRooms={onViewRooms}
+            onAddToTrip={onAddToTrip}
+          />
+        ))}
+      </motion.div>
+      {remaining > 0 && (
+        <p className="text-xs text-text-tertiary text-center py-2 mt-1">
+          +{remaining} more results
         </p>
       )}
-    </motion.div>
+    </div>
   );
 }

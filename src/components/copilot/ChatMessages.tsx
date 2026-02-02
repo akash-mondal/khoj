@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
@@ -134,15 +134,31 @@ interface ChatMessagesProps {
 
 export function ChatMessages({ messages, isLoading, activeTool, onSendMessage }: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
+  const lastMsgCountRef = useRef(0);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const threshold = 150;
+    isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+  }, []);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (!scrollRef.current) return;
+
+    // Always scroll on new user message (count increased + last is user)
+    const lastMsg = messages[messages.length - 1];
+    const isNewUserMsg = messages.length > lastMsgCountRef.current && lastMsg?.role === "user";
+    lastMsgCountRef.current = messages.length;
+
+    if (isNewUserMsg || isNearBottomRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     }
   }, [messages, isLoading]);
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+    <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
       <AnimatePresence initial={false}>
         {messages.map((msg) => {
           if (msg.role === "tool") {
