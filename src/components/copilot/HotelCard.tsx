@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, Hotel } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface HotelData {
@@ -29,6 +30,8 @@ interface HotelCardProps {
 }
 
 export function HotelCard({ hotel, onViewRooms, onAddToTrip }: HotelCardProps) {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
@@ -39,15 +42,19 @@ export function HotelCard({ hotel, onViewRooms, onAddToTrip }: HotelCardProps) {
     >
       {/* Image */}
       <div className="relative h-[130px] bg-muted overflow-hidden">
-        {hotel.image ? (
+        {hotel.image && !imgError ? (
           <img
             src={hotel.image}
             alt={hotel.name}
             className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-text-tertiary">
-            <MapPin className="w-6 h-6" strokeWidth={1} />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-divider text-text-tertiary">
+            <div className="flex flex-col items-center gap-1">
+              <Hotel className="w-6 h-6" strokeWidth={1} />
+              <span className="text-[10px] font-medium">{hotel.stars}★</span>
+            </div>
           </div>
         )}
         {/* Star badge */}

@@ -143,7 +143,7 @@ export function ChatMessages({ messages, isLoading, activeTool, onSendMessage }:
 
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence initial={false}>
         {messages.map((msg) => {
           if (msg.role === "tool") {
             return (

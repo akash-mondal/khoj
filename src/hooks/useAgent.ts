@@ -21,6 +21,21 @@ interface UseAgentOptions {
   tripSummary?: string;
 }
 
+const TOOL_LABELS: Record<string, { loading: string; done: string }> = {
+  search_hotels: { loading: "Searching hotels...", done: "Found hotels" },
+  get_hotel_details: { loading: "Loading hotel details...", done: "Hotel details ready" },
+  get_room_options: { loading: "Checking room availability...", done: "Room options ready" },
+  check_cancellation_policy: { loading: "Checking cancellation policy...", done: "Policy retrieved" },
+  prebook_room: { loading: "Securing your room...", done: "Room secured" },
+  book_hotel: { loading: "Completing booking...", done: "Booking confirmed" },
+  get_booking_status: { loading: "Checking booking status...", done: "Status retrieved" },
+  cancel_booking: { loading: "Processing cancellation...", done: "Booking cancelled" },
+  get_client_preferences: { loading: "Loading client preferences...", done: "Client preferences loaded" },
+  add_to_itinerary: { loading: "Adding to itinerary...", done: "Added to itinerary" },
+  generate_quote: { loading: "Generating quote...", done: "Quote ready" },
+  suggest_activities: { loading: "Finding activities...", done: "Activities found" },
+};
+
 export function useAgent(options: UseAgentOptions = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -111,31 +126,35 @@ export function useAgent(options: UseAgentOptions = {}) {
                 );
                 break;
 
-              case "tool_start":
+              case "tool_start": {
                 setActiveTool(event.toolName || null);
+                const loadLabel = TOOL_LABELS[event.toolName || ""]?.loading || `Processing...`;
                 setMessages((prev) => [
                   ...prev,
                   {
                     id: `tool-${Date.now()}`,
                     role: "tool",
-                    content: `Calling ${event.toolName}...`,
+                    content: loadLabel,
                     toolName: event.toolName,
                     toolArgs: event.toolArgs,
                     timestamp: Date.now(),
                   },
                 ]);
                 break;
+              }
 
-              case "tool_result":
+              case "tool_result": {
                 setActiveTool(null);
+                const doneLabel = TOOL_LABELS[event.toolName || ""]?.done || `Done`;
                 setMessages((prev) =>
                   prev.map((m) =>
                     m.role === "tool" && m.toolName === event.toolName && !m.toolResult
-                      ? { ...m, content: `${event.toolName} completed`, toolResult: event.toolResult }
+                      ? { ...m, content: doneLabel, toolResult: event.toolResult }
                       : m
                   )
                 );
                 break;
+              }
 
               case "done":
                 setMessages((prev) =>

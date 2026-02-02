@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { useAgent } from "@/hooks/useAgent";
 import { ChatMessages } from "./ChatMessages";
@@ -22,6 +22,16 @@ export function CopilotPanel() {
       ? `${activeTrip.destination}, ${activeTrip.startDate} to ${activeTrip.endDate}, Budget $${activeTrip.budget}`
       : undefined,
   });
+
+  // Detect rich content (hotel/room results) to auto-expand the panel
+  const hasRichContent = useMemo(() => {
+    return messages.some(
+      (m) =>
+        m.role === "tool" &&
+        m.toolResult &&
+        (m.toolName === "search_hotels" || m.toolName === "get_room_options")
+    );
+  }, [messages]);
 
   // Auto-send queued messages from external components (e.g., alert clicks)
   useEffect(() => {
@@ -60,7 +70,10 @@ export function CopilotPanel() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
-            className="fixed bottom-6 right-6 z-50 w-[400px] h-[560px] rounded-2xl border border-border bg-white shadow-2xl flex flex-col overflow-hidden"
+            layout
+            className={`fixed bottom-6 right-6 z-50 rounded-2xl border border-border bg-white shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
+              hasRichContent ? "w-[420px] h-[80vh] max-h-[720px]" : "w-[400px] h-[560px]"
+            }`}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
